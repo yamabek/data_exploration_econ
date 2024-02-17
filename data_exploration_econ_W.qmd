@@ -1,0 +1,70 @@
+---
+title: "data_exploration_econ" 
+author: "Katie Yamabe"
+format: docx
+editor: visual
+---
+
+## Libraries
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+LOAD the libraries and the data's
+
+```{r}
+library(tidyverse)
+library(fixest)
+library(rio)
+library(lubridate)
+```
+
+Load Google Trends Data
+
+```{r}
+trends_up_to_list <- list.files(pattern = "trends_up_to_", full.names = TRUE)
+trends_up_to <-import_list(trends_up_to_list,rbind = TRUE, fill = TRUE)
+
+```
+
+Aggregating the Google Trends
+
+```{r}
+trends_up_to <- trends_up_to %>%   
+  mutate(temp = ymd(str_sub(monthorweek,end = 10)))%>%    
+  mutate(first_of_month = floor_date(temp, unit = "month"))
+
+trends_up_to <- trends_up_to %>%    
+  group_by(schname, keyword)%>%   
+  mutate((si = (index - mean(index))/sd(index)),na.rm = TRUE) 
+```
+
+Loading the Score Card
+
+```{r}
+score <- import("Most+Recent+Cohorts+(Scorecard+Elements).csv")
+score <- score %>%    
+  mutate(opeid = OPEID)%>%
+  filter(score$PREDDEG == 3)
+
+id_name_link <- import("id_name_link.csv") 
+
+id_name_link <- id_name_link %>%    
+  group_by(schname) %>%    
+  mutate (n = n())%>%    
+  filter(n == 1) %>%
+  ungroup()
+ 
+
+
+```
+
+Combine the Google Trends and Score Card
+
+```{r}
+id_name_link <- inner_join(trends_up_to, id_name_link, by = "schname")
+ 
+clean_data <- inner_join(id_name_link, score, by = c("unitid" = "UNITID", "opeid" = "OPEID"))
+
+ 
+
+```
