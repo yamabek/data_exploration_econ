@@ -16,6 +16,7 @@ library(tidyverse)
 library(fixest)
 library(rio)
 library(lubridate)
+library(ggplot2)
 ```
 
 Load Google Trends Data
@@ -69,7 +70,7 @@ clean_data <- inner_join(id_name_link, score, by = c("unitid" = "UNITID", "opeid
 
 ```
 
-Removing Na's and determinnig that "high income" is the top 25% of the population. According to the 2022 US Census the top 25% income was \$94,001 for the average household. <https://www.census.gov/content/dam/Census/library/publications/2023/demo/p60-279.pdf> (pg7).
+Removing Na's and determining that "high income" is the top 25% of the population. According to the 2022 US Census the top 25% income was \$94,001 for the average household. <https://www.census.gov/content/dam/Census/library/publications/2023/demo/p60-279.pdf> (pg7).
 
 ```{r}
 clean_data <- clean_data %>% 
@@ -85,20 +86,22 @@ clean_data <- clean_data %>%
    select(schname, first_of_month, si, PREDDEG, high_earning, `md_earn_wne_p10-REPORTED-EARNINGS`)
 
 clean_data <- clean_data %>%
-  mutate(post_score = ifelse(first_of_month >= as.Date("2015-09-01"),1,0))
+  mutate(post_score = ifelse(first_of_month >= as.Date("2015-09-01"),1,0)) %>%
+  mutate(med_earn = `md_earn_wne_p10-REPORTED-EARNINGS`)
 
 #regression
 
 reg1 <- lm(si ~ high_earning * post_score, data = clean_data)
 summary(reg1)
 
-
 # Create the plot
-ggplot(clean_data, aes(x = `md_earn_wne_p10-REPORTED-EARNINGS`, y = si)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(x = "median wage after college", y = "google searches", title = "Regression Results") +
-  theme_minimal()
+ggplot(clean_data, aes(x = first_of_month, y = si, color = factor(high_earning))) +
+  geom_line() +
+  labs(title = "Search Interest Over Time for High vs. Low Earning Colleges",
+       x = "Date",
+       y = "Average Z Score",
+       color = "Earnings Category") +
+  facet_wrap(~ post_score)
 ```
 
 Reason for Analysis
@@ -107,6 +110,4 @@ The analysis conducted was due to filtering down the information to the high-ear
 
 Conclusion
 
-The P-value is statistically significant to the 99%. The introduction fo the College Scorecard increased search activity on Google Trends for colleges with high-earning graduates by 10.03 percentage points relative to what it did for colleges with low-earning graduates with a standard error of 0.005379. This result comes from the high_earning coefficients in my regression.
-
-Conclusion
+The P-value is statistically significant to the 0.001 significance level. The introduction of the College Scorecard increased search activity on Google Trends for colleges with high-earning graduates by 17.70 percentage points relative to what it did for colleges with low-earning graduates with a standard error of 0.005379. This result comes from the high_earning coefficients in my regression.
