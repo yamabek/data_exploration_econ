@@ -5,6 +5,10 @@ format: docx
 editor: visual
 ---
 
+**Introduction:**
+
+The study below refers to the effect of the College Scorecard that was introduced 09/01/2015 on high earning colleges and their search popularity on Google Trends.
+
 ## Libraries
 
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
@@ -93,21 +97,26 @@ clean_data <- clean_data %>%
 
 reg1 <- lm(si ~ high_earning * post_score, data = clean_data)
 summary(reg1)
+clean_data <- clean_data[!is.na(clean_data$si), ]
 
 # Create the plot
 ggplot(clean_data, aes(x = first_of_month, y = si, color = factor(high_earning))) +
   geom_line() +
   labs(title = "Search Interest Over Time for High vs. Low Earning Colleges",
        x = "Date",
-       y = "Average Z Score",
+       y = "si",
        color = "Earnings Category") +
   facet_wrap(~ post_score)
 ```
 
-Reason for Analysis
+**Reason for Analysis**
 
 The analysis conducted was due to filtering down the information to the high-earning colleges as well as pre and post score card. These were key components of the research question. The regression that was ran was the standard index regressed on the high earning colleges after the scorecard came out.
 
-Conclusion
+**Results**
 
-The P-value is statistically significant to the 0.001 significance level. The introduction of the College Scorecard increased search activity on Google Trends for colleges with high-earning graduates by 17.70 percentage points relative to what it did for colleges with low-earning graduates with a standard error of 0.005379. This result comes from the high_earning coefficients in my regression.
+The results can be interpreted that with high-earning graduating classes the scorecard increased the activity on Google Trends for those colleges. I believe that this was due to the fact that with the College scorecard expecting students could easily search which colleges were going to be the higher-earning graduation schools. More interest would build for these colleges leading to more hits on Google Trends.
+
+**Conclusion**
+
+The P-value is statistically significant to the 0.001 significance level. The introduction of the College Scorecard increased search activity on Google Trends for colleges with high-earning graduating classes by -0.283064 units relative to what it did or colleges with low-earning graduates with a standard error of 0.012340. This result comes from the high_earning:post_score coefficients in my regression.
